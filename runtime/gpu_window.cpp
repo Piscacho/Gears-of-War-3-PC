@@ -164,7 +164,7 @@ void GpuStartWindow()
         // la imagen: todo (videos incluidos) salia borroso. Como en GH, la ventana del juego usa los pixeles reales del monitor.
         // GOW3_DPIVIRTUAL=1 = antes.
         if (!getenv("GOW3_DPIVIRTUAL")) SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-        WNDCLASSW wc{}; wc.lpfnWndProc = WndProc; wc.hInstance = GetModuleHandleW(nullptr); wc.lpszClassName = L"NG2Recomp";
+        WNDCLASSW wc{}; wc.lpfnWndProc = WndProc; wc.hInstance = GetModuleHandleW(nullptr); wc.lpszClassName = L"NG2Recomp"; wc.hIcon = LoadIconW(wc.hInstance, MAKEINTRESOURCEW(1));   // gow3.rc
         wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
         RegisterClassW(&wc);
         // Sesion 25: tamano de la ventana (ventana=WxH en gow3.ini -> GOW3_WINSIZE), centrada y recortada al area de trabajo,

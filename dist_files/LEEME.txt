@@ -33,8 +33,9 @@ Espanol latino
 
 Raton y teclado
 - Raton: camara (sensibilidad en el launcher). Clic izquierdo dispara, derecho apunta. F10 libera/captura el raton.
-- WASD mover, Espacio/Mayus = A (cubrirse/correr), E = X (usar/recoger), Q = Y, Tab = LB, R = RB (recargar),
-  1-4 o flechas = cruceta (armas), rueda = cambiar arma, Intro = pausa, Esc = B.
+- Como Gears of War: Reloaded: WASD mover, Espacio = cubrirse/correr/esquivar, E = usar/recoger, F = cuerpo a cuerpo,
+  R = recargar, Mayus = Tac-Com, Q = mirar al objetivo, Tab = marcador, Esc = pausa (en menus: atras),
+  1-4 o flechas = cruceta (armas), rueda = cambiar arma, Intro = START, Retroceso = atras.
 
 Jugar online (Horda con amigos)
 - En el launcher, Modo: el anfitrion elige "Crear partida" y los demas "Unirse" (online_direccion= en gow3.ini = IP del

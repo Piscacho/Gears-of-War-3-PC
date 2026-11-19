@@ -1,6 +1,7 @@
 ﻿// XAM minimo (sesion 6): memoria, perfil, mandos, audio, enumeraciones, mensajes y red.
 // Comportamiento segun Xenia (BSD). Mandos: de momento el mando 1 conectado y en reposo (la entrada real llega en la sesion de entrada).
 #include "objects.h"
+#include "gpu.h"
 #include <ppc_recomp_shared.h>
 #include <cstring>
 #include <mutex>
@@ -648,6 +649,7 @@ GUEST_IMPL(XamUserGetDeviceContext) { ctx.r3.u64 = 0; }
 // Guion: archivo de texto con lineas "<segundos> <BOTON>[+BOTON...] [ms]" o "<segundos> DUMP" (captura shot_<segundos>.bmp).
 // Botones: UP DOWN LEFT RIGHT START BACK A B X Y LB RB LT RT, sticks LUP LDOWN LLEFT LRIGHT RUP RDOWN RLEFT RRIGHT. Los tiempos cuentan desde el arranque del proceso.
 extern std::atomic<int> g_dumpRequest;   // gpu_window.cpp
+extern std::atomic<bool> g_frontendMenu;   // hooks_gow3.cpp: menu principal (no partida)
 extern std::atomic<int> g_drawLogRequest;   // gpu_window.cpp (GoW3 sesion 5)
 extern std::atomic<int> g_dumpSeq;       // gpu_window.cpp: frames seguidos que quedan por volcar
 namespace
@@ -749,17 +751,18 @@ uint16_t CurrentButtons(uint8_t* lt = nullptr, uint8_t* rt = nullptr, int16_t* s
     DWORD pid = 0; GetWindowThreadProcessId(GetForegroundWindow(), &pid);
     if (pid == GetCurrentProcessId())
     {
-        // GoW3 sesion 5: distribucion de Gears (antes la de NG2). Menus: flechas = cruceta, Intro = START, Retroceso = BACK, Esc = B.
+        // GoW3 sesion 5: distribucion de Gears of War: Reloaded (PC). Menus: flechas = cruceta, Intro = START, Esc/Retroceso = B.
         // Juego: WASD = stick izquierdo, raton (o IJKL) = camara, clic izq. = RT (disparar), clic der. = LT (apuntar),
-        // Espacio/Mayus = A (cubrirse/correr), E = X (usar/recoger), F = B (cuerpo a cuerpo), R = RB (recargar), Q = Y (mirar),
-        // Tab = LB (tactica), 1-4 = cruceta (armas), rueda = cruceta arriba/abajo, clic central = Y, Ctrl = B.
+        // Espacio = A (cubrirse/correr/esquivar), E = X (usar/recoger), F = B (cuerpo a cuerpo), R = RB (recargar), Q = Y (mirar),
+        // Mayus = LB (Tac-Com), Tab = BACK (marcador), Esc = START (pausa), 1-4 = cruceta (armas), rueda = cruceta, clic central = Y.
         auto down = [](int vk) { return (GetAsyncKeyState(vk) & 0x8000) != 0; };
         if (down(VK_UP) || down('1')) buttons |= 0x0001; if (down(VK_DOWN) || down('3')) buttons |= 0x0002;
         if (down(VK_LEFT) || down('4')) buttons |= 0x0004; if (down(VK_RIGHT) || down('2')) buttons |= 0x0008;
-        if (down(VK_RETURN)) buttons |= 0x0010; if (down(VK_BACK)) buttons |= 0x0020;
-        if (down(VK_SPACE) || down(VK_SHIFT)) buttons |= 0x1000; if (down(VK_ESCAPE) || down('F') || down(VK_CONTROL)) buttons |= 0x2000;
+        if (down(VK_RETURN)) buttons |= 0x0010; if (down(VK_TAB)) buttons |= 0x0020;
+        if (down(VK_ESCAPE)) buttons |= g_frontendMenu.load(std::memory_order_relaxed) ? 0x2000 : 0x0010;   // Esc: atras en menus, pausa en partida
+        if (down(VK_SPACE)) buttons |= 0x1000; if (down('F') || down(VK_CONTROL) || down(VK_BACK)) buttons |= 0x2000;
         if (down('E')) buttons |= 0x4000; if (down('Q')) buttons |= 0x8000;
-        if (down(VK_TAB)) buttons |= 0x0100; if (down('R')) buttons |= 0x0200;
+        if (down(VK_SHIFT)) buttons |= 0x0100; if (down('R')) buttons |= 0x0200;
         if (down('C')) buttons |= 0x0040; if (down('V')) buttons |= 0x0080;   // L3 / R3
         if (rt && down('Z')) *rt = 255; if (lt && down('X')) *lt = 255;
         if (down('W')) stickMask |= 1; if (down('S')) stickMask |= 2; if (down('A')) stickMask |= 4; if (down('D')) stickMask |= 8;
@@ -777,6 +780,10 @@ uint16_t CurrentButtons(uint8_t* lt = nullptr, uint8_t* rt = nullptr, int16_t* s
     }
     static bool autoStart = getenv("GOW3_AUTOSTART") != nullptr;
     if (autoStart) { DWORD t = GetTickCount() / 250 % 24; if (t == 0) buttons |= 0x0010; else if (t == 12) buttons |= 0x1000; }
+    // GoW3 sesion 5: con la TU el arranque espera una pulsacion con la pantalla en negro (swaps se queda en 2). Pulsa START
+    // 200 ms cada 2 s mientras siga asi (desde los 3 s). GOW3_NOBOOTSTART lo desactiva.
+    static const bool noBootStart = getenv("GOW3_NOBOOTSTART") != nullptr;
+    if (!noBootStart && GpuGetStats().swaps.load() <= 2) { DWORD t = GetTickCount() - g_processStart; if (t > 3000 && t % 2000 < 200) buttons |= 0x0010; }
     static std::mutex m;
     static std::vector<ScriptStep> steps = LoadInputScript();
     if (!steps.empty())

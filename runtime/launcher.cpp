@@ -87,6 +87,8 @@ LauncherConfig LoadConfig()
 {
     LauncherConfig c; c.dataDir = ExeDir() + "\\userdata"; c.dlcDir = ExeDir() + "\\dlc";
     bool latino = false; std::string latinoDir;
+    // GoW3 sesion 5: la TU se cuelga al entrar al menu principal (pendiente): solo se usa con actualizacion=1
+    if (!getenv("GOW3_NOTU")) _putenv_s("GOW3_NOTU", "1");
     if (FILE* f = fopen(IniPath().c_str(), "r"))
     {
         char line[1024];
@@ -128,7 +130,7 @@ LauncherConfig LoadConfig()
             else if (k == "online_ip" && !v.empty()) _putenv_s("GOW3_NET_IP", v.c_str());
             else if (k == "online_nombre" && !v.empty()) _putenv_s("GOW3_GAMERTAG", v.c_str());
             else if (k == "fps" && !v.empty() && v != "30") _putenv_s("GOW3_MAXFPS", v == "sin_limite" ? "0" : v.c_str());   // sesion 9 de GoWJ
-            else if (k == "actualizacion") { if (v == "0") _putenv_s("GOW3_NOTU", "1"); }   // sesion 26: usar la TU si esta
+            else if (k == "actualizacion") _putenv_s("GOW3_NOTU", v == "1" ? "" : "1");   // "" la quita: usar la TU si esta
             else if (k.rfind("GOW3_", 0) == 0 && !v.empty()) _putenv_s(k.c_str(), v.c_str());
         }
         fclose(f);

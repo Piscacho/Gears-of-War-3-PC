@@ -116,7 +116,7 @@ const Toggle kToggles[] = {
     { "vibracion", L"Vibración del mando", L"El mando vibra con los disparos y golpes.", true },
     { "saltar_intro", L"Saltar los vídeos de inicio", L"Entra directo a la pantalla de título.", false },
     { "perfil", L"Guardar partidas", L"Con perfil se guardan la campaña y los ajustes.", true },
-    { "actualizacion", L"Usar la actualización del título", L"Si está instalada en la carpeta de datos.", true },
+    { "actualizacion", L"Usar la actualización del título", L"Experimental: ahora se cuelga al entrar al menú principal.", false },
     { "mostrar_launcher", L"Mostrar este launcher al abrir", L"Si se desactiva, mantén Mayús al abrir para verlo.", true },
     { "horda_sin_tutorial", L"Saltar el tutorial de la Horda", L"Con un perfil nuevo la oleada 1 espera a que construyas el puesto de mando.", false },
     { "actualizar_al_abrir", L"Buscar actualizaciones al abrir", L"Avisa si hay una versión nueva del port en GitHub.", true },
@@ -434,7 +434,7 @@ void PaintHome(HDC dc, RECT area)
     RECT c1{ card.left + S(16), card.top + S(4), card.right - S(16), card.top + S(28) };
     Text(dc, L"MANDO DE XBOX O DUALSENSE: como en la consola   ·   TECLADO: WASD mover, IJKL cámara", c1, kText, g.smallFont, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
     RECT c2{ card.left + S(16), card.top + S(28), card.right - S(16), card.top + S(52) };
-    Text(dc, L"ESPACIO: A (cubrirse)   ·   Q: disparar   ·   Z: apuntar   ·   R: cambiar arma   ·   INTRO: pausa   ·   F11: pantalla completa", c2, kMuted, g.smallFont, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+    Text(dc, L"Controles como Gears of War: Reloaded   ·   ESPACIO: cubrirse/correr   ·   R: recargar   ·   F: cuerpo a cuerpo   ·   ESC: pausa   ·   F11: pantalla completa", c2, kMuted, g.smallFont, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
     y = Section(dc, x, card.bottom + S(14), w, L"ACTUALIZACIONES");
     std::wstring info = !g.updText.empty() ? g.updText : L"Versión instalada: v" + Wide(AppVersion());
     RECT it{ x, y, x + w - S(290), y + S(36) }; Text(dc, info, it, kText, g.smallFont, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
@@ -467,10 +467,10 @@ void PaintControls(HDC dc, RECT area)
     struct Row { const wchar_t* action; const wchar_t* pad; const wchar_t* keys; };
     static const Row rows[] = {
         { L"Moverse", L"Stick izquierdo", L"W A S D" }, { L"Cámara", L"Stick derecho", L"Ratón (o I J K L)" },
-        { L"Cubrirse / correr / acción", L"A (Cruz)", L"Espacio / Mayús" }, { L"Recargar (recarga activa)", L"RB (R1)", L"R" },
-        { L"Apuntar", L"LT (L2)", L"Clic derecho / X" }, { L"Disparar", L"RT (R2)", L"Clic izquierdo / Z" }, { L"Táctica / granada", L"LB (L1)", L"Tab" },
-        { L"Cambiar de arma", L"Cruceta", L"1-4 / rueda" }, { L"Golpe cuerpo a cuerpo", L"B (Círculo)", L"F / Ctrl" }, { L"Usar / recoger", L"X (Cuadrado)", L"E" },
-        { L"Mirar al objetivo", L"Y (Triángulo)", L"Q / clic central" }, { L"Pausa", L"START (Options)", L"Intro" },
+        { L"Cubrirse / correr / acción", L"A (Cruz)", L"Espacio" }, { L"Recargar (recarga activa)", L"RB (R1)", L"R" },
+        { L"Apuntar", L"LT (L2)", L"Clic derecho / X" }, { L"Disparar", L"RT (R2)", L"Clic izquierdo / Z" }, { L"Tac-Com", L"LB (L1)", L"Mayús" },
+        { L"Cambiar de arma", L"Cruceta", L"1-4 / rueda" }, { L"Golpe cuerpo a cuerpo", L"B (Círculo)", L"F" }, { L"Usar / recoger", L"X (Cuadrado)", L"E" },
+        { L"Mirar al objetivo", L"Y (Triángulo)", L"Q / clic central" }, { L"Pausa", L"START (Options)", L"Esc / Intro" }, { L"Marcador", L"BACK (Share)", L"Tab" },
         { L"Liberar el ratón", L"", L"F10" },
     };
     int colPad = x + w - S(440), colKeys = x + w - S(200);

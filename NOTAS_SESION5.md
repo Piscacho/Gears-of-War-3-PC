@@ -129,4 +129,25 @@
   borró los `.old`.
 - `tools/make_release.ps1`: compila (salvo -NoBuild), make_dist y crea `release\GearsOfWar3-PC-v<ver>-windows.zip` + `.sha256`
   (sin userdata, shaders\*.bin del juego, gow3.ini personal; falla si hay .iso/.xex/.bin/.log). Para cada versión nueva:
-  subir `AppVersion()`, make_release y publicar la release `v<ver>` con el zip. El repositorio aún NO existe en GitHub.
+  subir `AppVersion()`, make_release y publicar la release `v<ver>` con el zip. Publicado 2026-11-18: https://github.com/Piscacho/Gears-of-War-3-PC (release v1.0.0). El código del repo se armó desde una lista (runtime, tools, config, compat, dist_files, scripts, project/CMakeLists.txt, notas, xenonrecomp_gow3.diff) en una copia aparte: esta carpeta NO es un repo git; para subir cambios de código hay que repetir esa copia o clonar el repo.
+
+## Pantalla negra con la TU, consola, icono y controles de Reloaded (2026-11-18, partida con un amigo)
+- **Pantalla negra al arrancar con la TU** (anfitrion y amigo): no era el online ni un cuelgue. GOW3TU espera una pulsacion
+  con la pantalla en negro (swaps se queda en 2; con START sigue). `xam.cpp` CurrentButtons: mientras `GpuGetStats().swaps <= 2`
+  y han pasado 3 s, pulsa START 200 ms cada 2 s (`GOW3_NOBOOTSTART` lo quita). Probado: TU sin pulsar nada 2 -> 2671 swaps.
+- **Sin ventana de consola**: CMake `/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup` (el registro ya iba a gow3.log por freopen;
+  run_game.py sigue capturando stdout/stderr). `project(... CXX RC)`.
+- **Icono**: `runtime/gow3.ico` (emblema rojo del logo de SteamGridDB, mitad izquierda reflejada para quitar la "G") +
+  `runtime/gow3.rc` (icono 1); la ventana del juego lo usa (`gpu_window.cpp` wc.hIcon) y el launcher ya cargaba el icono 1.
+- **Teclado como Gears of War: Reloaded** (lista por defecto de shortcutposters.com; PCGamingWiki bloquea): Espacio = A,
+  E = X, F = B, R = RB, Mayus = LB (Tac-Com), Tab = BACK (marcador), Esc = START en partida / B en el menu principal
+  (`g_frontendMenu`), Retroceso = B. Antes: Mayus = A, Tab = LB, Esc = B, Retroceso = BACK. Launcher (CONTROLES) y LEEME al dia.
+- **Menu principal "vacio"** (captura del usuario: fondo + ACEPTAR/VOLVER/OPCIONES sin opciones). Dos cosas distintas:
+  1. **TU (GOW3TU) se congela al pulsar START en el titulo**, tambien sin DLC, sin latino y sin enganches XMA
+     (`logs/menu_tu*.log`): el hilo principal gira ocupado (lr TU 0x822C1514 / 0x822BC7B0; hilo 82336110 en 0x8240462C).
+     PENDIENTE. Mientras tanto la TU es opcional y viene apagada: launcher.cpp pone `GOW3_NOTU=1` salvo `actualizacion=1`
+     (opcion de AVANZADO marcada como experimental).
+  2. **Base con 31 DLC**: no es cuelgue. Tras START lee los DLC (~1 s cada uno) y las partidas: el menu sale ~60-80 s despues,
+     con ratos de 8+ s sin imagen ("LEYENDO PARTIDAS GUARDADAS"). Probado desde dist con la config del usuario (32:9, latino,
+     anfitrion): menu completo a los 80 s. Mejora pendiente: acelerar esa lectura.
+- Version 1.0.1 (AppVersion) con todo lo anterior: `release\GearsOfWar3-PC-v1.0.1-windows.zip`, aun sin publicar.

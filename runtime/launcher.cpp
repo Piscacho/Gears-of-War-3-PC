@@ -86,7 +86,7 @@ static std::string g_updateIniDir;   // actualizacion_dir= (GoW3 sesion 5): Impo
 LauncherConfig LoadConfig()
 {
     LauncherConfig c; c.dataDir = ExeDir() + "\\userdata"; c.dlcDir = ExeDir() + "\\dlc";
-    bool latino = false; std::string latinoDir;
+    bool latino = false; std::string latinoDir, netPeers;
     // GoW3 sesion 5: la TU se cuelga al entrar al menu principal (pendiente): solo se usa con actualizacion=1
     if (!getenv("GOW3_NOTU")) _putenv_s("GOW3_NOTU", "1");
     if (FILE* f = fopen(IniPath().c_str(), "r"))
@@ -124,8 +124,9 @@ LauncherConfig LoadConfig()
             else if (k == "pantalla_completa") _putenv_s("GOW3_FULLSCREEN", v == "1" ? "1" : "0");
             else if (k == "ventana" && !v.empty()) _putenv_s("GOW3_WINSIZE", v.c_str());
             else if (k == "panoramico" && !v.empty()) _putenv_s("GOW3_PANO", v.c_str());
-            else if (k == "online" && (v == "crear" || v == "unirse")) _putenv_s("GOW3_NET", v.c_str());   // sesion 9: enlace de sistema P2P
-            else if (k == "online_direccion" && !v.empty()) _putenv_s("GOW3_NET_PEER", v.c_str());
+            // GoW3 sesion 5: online como el de Guitar Hero (net_gow3.cpp): sin anfitrion ni IP; los antiguos crear/unirse = activado
+            else if (k == "online") _putenv_s("GOW3_NET", !v.empty() && v != "no" && v != "0" ? "1" : "");   // "" la quita
+            else if ((k == "online_amigos" || k == "online_direccion") && !v.empty()) netPeers += (netPeers.empty() ? "" : ",") + v;
             else if (k == "online_puerto" && !v.empty()) _putenv_s("GOW3_NET_PORT", v.c_str());
             else if (k == "online_ip" && !v.empty()) _putenv_s("GOW3_NET_IP", v.c_str());
             else if (k == "online_nombre" && !v.empty()) _putenv_s("GOW3_GAMERTAG", v.c_str());
@@ -135,6 +136,7 @@ LauncherConfig LoadConfig()
         }
         fclose(f);
     }
+    if (!netPeers.empty()) _putenv_s("GOW3_NET_PEER", netPeers.c_str());   // codigos de amigos (net_gow3.cpp)
     // GoW3 sesion 5: espanol latino = idioma de la consola espanol + archivos ESM de otro disco del juego (carpeta_latino=, o una
     // carpeta "juego en latino"/"latino" junto al launcher o junto al ISO). El juego busca GearGame\ dentro (hasta 3 niveles).
     if (latino)

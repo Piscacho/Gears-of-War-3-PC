@@ -18,7 +18,9 @@ file(GLOB PPC_SOURCES CONFIGURE_DEPENDS ${PPC_DIR}/ppc_recomp.*.cpp ${PPC_DIR}/p
 # Codigo PPC traducido (enorme): libreria aparte con flags propias
 add_library(GOW3RecompLib STATIC ${PPC_SOURCES})
 target_include_directories(GOW3RecompLib PUBLIC ${PPC_DIR} ${RECOMP_ROOT}/XenonRecomp/thirdparty/simde)
-target_compile_options(GOW3RecompLib PRIVATE /O1 -fno-strict-aliasing -msse4.1 -Wno-everything -gline-tables-only /Z7 "/FI${RECOMP_ROOT}/compat/ppc_indirect.h")
+# Optimizacion del codigo PPC traducido: /O2 no acelero la carga de los DLC (64 s /O1 vs 66 s /O2, medido) y compila mas lento
+set(GOW3_PPC_OPT "/O1" CACHE STRING "Optimizacion del codigo PPC traducido")
+target_compile_options(GOW3RecompLib PRIVATE ${GOW3_PPC_OPT} -fno-strict-aliasing -msse4.1 -Wno-everything -gline-tables-only /Z7 "/FI${RECOMP_ROOT}/compat/ppc_indirect.h")
 
 set(FFMPEG "G:/Guitar Hero Warrior of rock/Recomp/toolchain/ffmpeg")
 set(RT ${RECOMP_ROOT}/runtime)
@@ -29,6 +31,6 @@ target_include_directories(GOW3 PRIVATE ${RT} ${FFMPEG}/include)
 target_compile_options(GOW3 PRIVATE /O2 -fno-strict-aliasing -msse4.1 -Wno-unused-parameter /Z7)
 target_compile_definitions(GOW3 PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN $<$<BOOL:${GOW3_TU}>:GOW3_TU>)
 set_target_properties(GOW3 PROPERTIES OUTPUT_NAME ${GOW3_OUT})
-target_link_libraries(GOW3 PRIVATE GOW3RecompLib user32 gdi32 d3d12 dxgi d3dcompiler winmm ole32 xinput bcrypt comdlg32 hid setupapi comctl32 ws2_32 dwmapi uxtheme shell32 windowscodecs msimg32 psapi winhttp ${FFMPEG}/lib/avcodec.lib ${FFMPEG}/lib/avutil.lib)
+target_link_libraries(GOW3 PRIVATE GOW3RecompLib user32 gdi32 d3d12 dxgi d3dcompiler winmm ole32 xinput bcrypt comdlg32 hid setupapi comctl32 ws2_32 dwmapi uxtheme shell32 windowscodecs msimg32 psapi winhttp iphlpapi ${FFMPEG}/lib/avcodec.lib ${FFMPEG}/lib/avutil.lib)
 add_custom_command(TARGET GOW3 POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG}/bin/avcodec-62.dll ${FFMPEG}/bin/avutil-60.dll ${FFMPEG}/bin/swresample-6.dll $<TARGET_FILE_DIR:GOW3>)
 target_link_options(GOW3 PRIVATE /DEBUG /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup)   # sin ventana de consola; el registro va a gow3.log

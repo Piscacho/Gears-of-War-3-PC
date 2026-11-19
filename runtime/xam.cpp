@@ -1090,7 +1090,8 @@ GUEST_IMPL(XMsgInProcessCall)
 // {sesion, flags, publicas, privadas, usuario, XSESSION_INFO*, nonce*}: XSESSION_INFO = XNKID(8) + XNADDR del anfitrion(36) + XNKEY(16).
 // Como anfitrion (flags & HOST) se genera el ID y la clave y se pone nuestra XNADDR (la IP real con online): es lo que el
 // "LAN beacon" anuncia y a donde se conectan los demas (sin esto la direccion iba a 0.0.0.0).
-void XnAddrFill(uint32_t a);   // net_gowj.cpp
+void XnAddrFill(uint32_t a);   // net_gow3.cpp
+void NetSetHost(bool host);    // net_gow3.cpp: el anfitrion conserva su puerto al reenlazar
 static void XgiSessionMessage(uint32_t app, uint32_t msg, uint32_t buf, uint32_t size)
 {
     if (app != 0xFB || !buf) return;
@@ -1109,6 +1110,7 @@ static void XgiSessionMessage(uint32_t app, uint32_t msg, uint32_t buf, uint32_t
             for (int i = 0; i < 16; i++) g_base[info + 44 + i] = rnd();
         }
         if (nonce) for (int i = 0; i < 8; i++) g_base[nonce + i] = rnd();
+        NetSetHost((flags & 1) != 0);
         LOG("[xgi] XSessionCreate flags %08X publicas %u privadas %u%s", flags, Load32(buf + 8), Load32(buf + 12), (flags & 1) ? " (anfitrion)" : "");
     }
 }

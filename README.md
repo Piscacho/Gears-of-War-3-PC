@@ -16,7 +16,8 @@ Recompilación estática para PC de **Gears of War 3** (Xbox 360, 4D5308AB) para
 4. En el launcher elige el ISO y pulsa **JUGAR**.
 
 - **Campaña**, **Horda** (partida privada) y **Bestia**.
-- **Horda online por enlace de sistema** (LAN o VPN como Radmin VPN / ZeroTier). Los pasos están en `LEEME.txt`.
+- **Horda online por enlace de sistema**, como el online de Guitar Hero: sin anfitrión fijo ni IPs. En red local
+  (o Radmin VPN / ZeroTier) os encontráis solos; por internet, con un **código de amigo** (UPnP + STUN). Pasos en `LEEME.txt`.
 - **DLC y actualización del título**: se eligen sus carpetas en el launcher y se importan solos al arrancar.
 - **Español latino**: con tu disco latino (carpeta con `GearGame\`) se usan sus textos, voces y vídeos narrados.
 - **Imagen**: 30 / 60 / 120 / 144 / 165 / 240 fps o sin límite, 32:9 con el HUD centrado, nitidez ajustable.
@@ -33,7 +34,7 @@ F11 o Alt+Intro: pantalla completa · F3: contador de FPS · F12: captura · F10
 
 - La primera vez que aparece un efecto puede faltar un instante mientras se compila su shader.
 - La Horda STANDARD pide Xbox LIVE Gold: usa PRIVATE (también en línea).
-- Con muchos DLC, tras pulsar START el menú principal tarda alrededor de un minuto ("Leyendo partidas guardadas"):
+- Con muchos DLC, tras pulsar START el menú principal tarda (unos 30 s con 31 DLC, "Leyendo partidas guardadas"):
   la imagen puede quedarse quieta unos segundos, no cierres el juego.
 - La opción "Usar la actualización del título" (AVANZADO) viene apagada: con ella el juego se congela al entrar al menú.
 - El juego en línea es solo por enlace de sistema (no hay Xbox Live).

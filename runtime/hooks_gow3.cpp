@@ -513,3 +513,60 @@ PPC_FUNC(sub_82B1C600)   // crear (y limpiar) los contextos de una voz
         }
     static int nl = 0; if (n > 1 && nl++ < 5) LOG("[xma] voz con %u contextos (antes se perdian kicks/clears del mismo grupo)", n);
 }
+
+#ifndef GOW3_TU   // shortcut: solo la version base (la TU esta apagada por defecto); para la TU hay que mapear las direcciones
+// GoW3 sesion 5: carga de los DLC al pulsar START (UGameEngine::LoadPackagesFully, sub_8253F388, desde
+// Engine.PackagesToFullyLoadForDLC). Por cada paquete cargado recorre TODOS los objetos (FObjectIterator, sub_822BCEC8) y sube
+// por Outer (+40) para ver si estan en el paquete: con 31 DLC era ~la mitad de un minuto de carga. Aqui, solo cuando el ++
+// viene de ese bucle (lr 0x8253F744 / 0x8253F7EC; el paquete esta en r26), se salta en nativo hasta el siguiente objeto que SI
+// esta en el paquete: el bucle del juego ve la misma secuencia de coincidencias. GOW3_NODLCFAST = como antes.
+PPC_FUNC_IMPL(__imp__sub_822BCEC8);
+PPC_FUNC(sub_822BCEC8)
+{
+    static const bool off = getenv("GOW3_NODLCFAST") != nullptr;
+    uint32_t lr = (uint32_t)ctx.lr;
+    if (off || (lr != 0x8253F744u && lr != 0x8253F7ECu)) { __imp__sub_822BCEC8(ctx, base); return; }
+    const uint32_t it = ctx.r3.u32, pkg = ctx.r26.u32;
+    const uint32_t data = Load32(0x8343D188u), num = Load32(0x8343D18Cu);   // GObjObjects
+    const uint64_t excl = Load64(it + 8);
+    // cache por hueco: (objeto, Outer directo) -> paquete raiz de su cadena de Outer (se recalcula si cambia el objeto o su Outer)
+    struct Top { uint32_t obj, outer, top; };
+    static std::vector<Top> cache;
+    if (cache.size() < num) cache.resize(num + 4096, Top{ 0, 0, 0 });
+    const bool topLevel = Load32(pkg + 40) == 0;   // LoadPackage da paquetes raiz; si no, se sube la cadena entera
+    int32_t idx = (int32_t)Load32(it + 4);
+    for (;;)
+    {
+        idx++;
+        if (idx < 0 || idx >= (int32_t)num) break;
+        uint32_t obj = Load32(data + (uint32_t)idx * 4);
+        if (!obj) continue;
+        uint32_t outer = Load32(obj + 40);
+        if (!outer) continue;
+        bool in = false;
+        if (topLevel)
+        {
+            Top& t = cache[idx];
+            if (t.obj != obj || t.outer != outer)
+            {
+                uint32_t top = outer; for (uint32_t o = Load32(outer + 40); o; o = Load32(o + 40)) top = o;
+                t = Top{ obj, outer, top };
+            }
+            in = t.top == pkg;
+        }
+        else for (uint32_t o = outer; o; o = Load32(o + 40)) if (o == pkg) { in = true; break; }
+        static const bool check = getenv("GOW3_DLCFASTCHECK") != nullptr;   // compara con subir la cadena entera
+        if (check)
+        {
+            static std::atomic<uint64_t> n{ 0 }, bad{ 0 };
+            bool ref = false; for (uint32_t o = outer; o; o = Load32(o + 40)) if (o == pkg) { ref = true; break; }
+            if (ref != in && bad++ < 20) LOG("[dlcfast] DIFERENCIA en objeto %08X (hueco %d, paquete %08X)", obj, idx, pkg);
+            if ((++n % 2000000) == 0) LOG("[dlcfast] %llu objetos comprobados, %llu diferencias", (unsigned long long)n.load(), (unsigned long long)bad.load());
+        }
+        if (!in) continue;
+        if ((Load64(obj + 8) & excl) != 0 || excl == ~0ull) continue;   // misma regla que el ++ original
+        break;
+    }
+    Store32(it + 4, (uint32_t)idx);
+}
+#endif

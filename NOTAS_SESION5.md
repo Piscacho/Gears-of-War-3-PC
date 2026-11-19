@@ -151,3 +151,31 @@
      con ratos de 8+ s sin imagen ("LEYENDO PARTIDAS GUARDADAS"). Probado desde dist con la config del usuario (32:9, latino,
      anfitrion): menu completo a los 80 s. Mejora pendiente: acelerar esa lectura.
 - Version 1.0.1 (AppVersion) con todo lo anterior: `release\GearsOfWar3-PC-v1.0.1-windows.zip`, aun sin publicar.
+
+## Online como el de Guitar Hero (2026-11-19, peticion: "no tenia que poner ip ni seleccionar anfitrion")
+- `runtime/net_gow3.cpp` reescrito (antes: un socket UDP real por socket del juego, difusiones solo a online_direccion,
+  anfitrion/invitado elegido en el launcher). Ahora: un unico puerto UDP (3074 o el siguiente libre), sockets del juego = colas
+  virtuales; paquete 'G3NP' v1 + tipo + IP virtual (4) + puerto origen (2) + puerto destino (2). Cada copia tiene una IP virtual
+  10.64.0.0/10 al azar (XNADDR.ina). Busqueda local: HELLO cada 2 s por multicast 239.255.66.7:37361 + difusion dirigida en
+  cada adaptador (LAN, Radmin VPN, ZeroTier; GetAdaptersAddresses) + 255.255.255.255. Internet: UPnP + STUN (de GH) ->
+  codigo de amigo de 12 caracteres (IP publica + puerto); GOW3_NET_PEER = codigos o ip[:puerto] (se relee cada 2 s).
+  Anfitrion automatico: xam.cpp XSessionCreate -> NetSetHost(flags & 1); el reenlace +100 del puerto de origen solo en invitados.
+  Diagnostico: GOW3_NET_NOINET (sin UPnP/STUN), GOW3_NET_NOLAN, GOW3_NET_PORT.
+- Launcher, EN LINEA: "Jugar en linea" Activado/Desactivado (online=1; crear/unirse antiguos se migran), "Tu codigo" + COPIAR,
+  "Codigos de amigos" (online_amigos, Ctrl+V), nombre y estado (UPnP / sin UPnP / CGNAT / sin internet). El launcher abre la red
+  en el mismo proceso (mismo puerto que el juego). La conexion del usuario es CGNAT: por internet, los dos ponen el codigo del otro.
+- Probado: dos copias (tools/run_pair.py, ya sin IPs) se encuentran solas en <2 s, el grupo System Link muestra a los dos y
+  entran juntos a la Horda (oleada 1, Checkout). Tres nodos (dos pruebas + el launcher abierto) tambien se ven.
+- Incompatible con v1.0.1 (protocolo nuevo): todos con la misma version. v1.0.2 lista en release\ (sin publicar).
+
+## Carga de los DLC al pulsar START (2026-11-19)
+- Perfil (GOW3_PROFILE=27:5000 GOW3_PROFILEALL=1 con la carpeta de datos del usuario, 31 DLC): hilo principal al 97 % en
+  UGameEngine::LoadPackagesFully (sub_8253F388, desde Engine.PackagesToFullyLoadForDLC: 82362B60 > 82363968 > 82363B80 >
+  823647C0 > 82364898 > 8253F080). Por cada paquete: LoadPackage (82313260) y luego FObjectIterator (init 822BCF28, ++ 822BCEC8)
+  sobre TODO GObjObjects (0x8343D188) subiendo por Outer (+40) -> ~1150 millones de comprobaciones.
+- /O2 en el codigo PPC: sin mejora (64 s /O1 vs 66 s /O2 hasta el menu) -> se queda /O1 (`GOW3_PPC_OPT`, variable de CMake).
+- hooks_gow3.cpp: ++ nativo solo cuando lr = 0x8253F744 / 0x8253F7EC (paquete en r26): salta al siguiente objeto del paquete,
+  con cache por hueco (objeto, Outer directo) -> paquete raiz. GOW3_NODLCFAST = como antes; GOW3_DLCFASTCHECK = compara con
+  la cadena entera (1150 M comprobaciones, 0 diferencias). Solo version base (#ifndef GOW3_TU).
+- Resultado: menu a los 47 s del arranque (antes 64); fase de DLC 35 s -> 19 s. Lo que queda es la carga real de paquetes
+  (FLinkerLoad 822E9188/822EA320/822E9608).

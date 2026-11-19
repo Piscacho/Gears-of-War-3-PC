@@ -34,6 +34,8 @@ UpdateInfo UpdateCheck(const std::string& repo);
 bool UpdateInstall(const UpdateInfo& u, const std::vector<std::wstring>& preserve, const std::function<void(int, int)>& progress, std::string& err);
 bool UpdaterRelaunch();
 const char* AppVersion();
+void NetLauncherStart();   // net_gow3.cpp: abre la red en este proceso (el juego usa el mismo puerto)
+bool NetLauncherInfo(std::string& code, std::wstring& status);
 namespace
 {
 // --- Aspecto -------------------------------------------------------------------------------
@@ -56,7 +58,7 @@ const wchar_t* kPageNames[kPages] = { L"INICIO", L"GRÁFICOS", L"CONTROLES", L"A
 
 enum : int
 {
-    kIdPlay = 1, kIdSave, kIdBrowseIso, kIdBrowseData, kIdOpenLogs, kIdOpenSaves, kIdOpenDlc, kIdBrowseDlc, kIdBrowseUpdate, kIdBrowseLatin, kIdUpdCheck,
+    kIdPlay = 1, kIdSave, kIdBrowseIso, kIdBrowseData, kIdOpenLogs, kIdOpenSaves, kIdOpenDlc, kIdBrowseDlc, kIdBrowseUpdate, kIdBrowseLatin, kIdUpdCheck, kIdCopyCode,
     kIdPageBase = 100, kIdChoiceBase = 1000, kIdToggleBase = 2000, kIdTextBase = 5000,
 };
 
@@ -87,8 +89,8 @@ const Choice kChoices[] = {
         { { "catmull-rom", L"Nítido (Catmull-Rom)" }, { "bilineal", L"Suave (bilineal)" } }, "catmull-rom" },
     { "latencia_audio", L"Latencia del audio", L"Baja responde antes; segura evita cortes en PCs cargados.",
         { { "baja", L"Baja (25 ms)" }, { "normal", L"Normal (40 ms)" }, { "segura", L"Segura (80 ms)" } }, "normal" },
-    { "online", L"Modo", L"Partida por enlace de sistema (LAN) entre PCs, directa (P2P).",
-        { { "no", L"Desactivado" }, { "crear", L"Crear partida (anfitrión)" }, { "unirse", L"Unirse a una partida" } }, "no" },
+    { "online", L"Jugar en línea", L"Enlace de sistema entre PCs: sin anfitrión fijo ni IPs. En red local os encontráis solos.",
+        { { "no", L"Desactivado" }, { "1", L"Activado" } }, "no" },
     { "raton", L"Sensibilidad del ratón", L"Velocidad de la cámara con el ratón.",
         { { "0.5", L"0,5" }, { "0.75", L"0,75" }, { "1.0", L"1,0" }, { "1.5", L"1,5" }, { "2.0", L"2,0" }, { "3.0", L"3,0" } }, "1.0" },
     { "voces", L"Volumen de las voces", L"Diálogos y narración (canal central de la mezcla 5.1).",
@@ -101,7 +103,7 @@ const Choice kChoices[] = {
 enum { kChoiceFps, kChoiceAspect, kChoiceWindow, kChoiceAniso, kChoiceScale, kChoiceAudioLat, kChoiceOnline, kChoiceMouse, kChoiceVoice, kChoiceLang, kChoiceBright, kChoiceCount };
 
 const TextSetting kTexts[] = {
-    { "online_direccion", L"Dirección del anfitrión", L"La IP que le aparece al que crea la partida (o la de su VPN).", "" },
+    { "online_amigos", L"Códigos de amigos", L"Por internet: pega el código de tu amigo (Ctrl+V; varios, separados por comas).", "" },
     { "online_puerto", L"Puerto UDP", L"El anfitrión lo abre en su router o usa una VPN (Radmin, ZeroTier).", "3074" },
     { "online_nombre", L"Nombre del jugador", L"El nombre con el que te ven los demás.", "Jugador" },
 };
@@ -158,6 +160,7 @@ struct State
     std::vector<Hit> hits; int hover = 0; bool play = false, done = false, dirty = false; int editing = -1;
     std::wstring status; IWICImagingFactory* wic = nullptr;
     UpdateInfo upd; bool updBusy = false, updAuto = false; std::wstring updText;   // actualizador
+    std::string netCode; bool netReady = true;   // codigo de amigo (net_gow3.cpp)
     HFONT title = nullptr, subtitle = nullptr, heading = nullptr, body = nullptr, smallFont = nullptr, button = nullptr, playFont = nullptr;
 } g;
 
@@ -503,18 +506,34 @@ void PaintOnline(HDC dc, RECT area)
     int x = area.left, w = area.right - area.left, y = area.top;
     y = Section(dc, x, y, w, L"JUEGO EN LÍNEA  ·  ENLACE DE SISTEMA P2P");
     ChoiceRow(dc, x, y, w, kChoiceOnline);
-    std::string mode = IniValue("online", "no");
-    if (mode == "unirse") TextRow(dc, x, y, w, kTextAddress);
-    if (mode != "no") { TextRow(dc, x, y, w, kTextPort); TextRow(dc, x, y, w, kTextName); }
-    RECT card{ x, y + S(4), area.right, y + S(4) + S(150) };
+    bool on = IniValue("online", "no") != "no";
+    // la red se abre ya en este proceso (mismo puerto que usara el juego) para tener el codigo de amigo
+    _putenv_s("GOW3_NET", on ? "1" : "");
+    _putenv_s("GOW3_NET_PEER", IniValue("online_amigos", "").c_str());
+    std::wstring status;
+    if (on)
+    {
+        NetLauncherStart();
+        g.netReady = NetLauncherInfo(g.netCode, status);
+        RowLabel(dc, x, y, w, L"Tu código", L"Pásaselo a tu amigo para jugar por internet (en red local no hace falta).");
+        int bw = S(250), bx = x + w - bw - S(130);
+        RECT box{ bx, y, bx + bw, y + S(34) }; Chamfer(dc, box, S(6), kPanel, kLine);
+        RECT tr{ box.left + S(12), box.top, box.right - S(12), box.bottom };
+        std::wstring code = !g.netCode.empty() ? Wide(g.netCode) : (g.netReady ? L"(sin internet)" : L"buscando...");
+        Text(dc, code, tr, g.netCode.empty() ? kMuted : kText, g.body, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+        Button(dc, RECT{ x + w - S(120), y, x + w, y + S(34) }, L"COPIAR", kIdCopyCode);
+        y += S(54);
+        TextRow(dc, x, y, w, kTextAddress); TextRow(dc, x, y, w, kTextName);
+    }
+    else g.netReady = true;
+    RECT card{ x, y + S(4), area.right, y + S(4) + S(170) };
     FillAlpha(dc, card, RGB(12, 12, 13), 200, S(10)); Chamfer(dc, card, S(10), CLR_NONE, kLine);
     RECT t{ card.left + S(16), card.top + S(10), card.right - S(16), card.bottom - S(10) };
-    const wchar_t* help =
-        L"Cada PC ejecuta su copia del juego y el tráfico de red del juego viaja directo entre los PCs por UDP (sin Xbox Live). "
-        L"El anfitrión elige \"Crear partida\" y crea una partida de enlace de sistema dentro del juego; los demás eligen "
-        L"\"Unirse\", escriben su IP y buscan partidas de enlace de sistema.\n\nPor internet, el anfitrión debe abrir el puerto "
-        L"UDP en su router; si no, usad una VPN como Radmin VPN o ZeroTier y la IP que os dé. Todos necesitáis el mismo port.";
-    Text(dc, help, t, kMuted, g.smallFont, DT_LEFT | DT_TOP | DT_WORDBREAK);
+    std::wstring help = (status.empty() ? L"" : status + L"\n\n") +
+        L"Activadlo los dos y pulsad JUGAR. En el juego: BACK (Tab) -> System Link. Uno crea el grupo con Y y el otro "
+        L"lo encuentra con X y entra con A; no hay que elegir anfitrión ni escribir IPs. En la misma red (o con Radmin VPN / "
+        L"ZeroTier) os encontráis solos; por internet, uno pega el código del otro en «Códigos de amigos».";
+    Text(dc, help.c_str(), t, kMuted, g.smallFont, DT_LEFT | DT_TOP | DT_WORDBREAK);
 }
 void PaintAdvanced(HDC dc, RECT area)
 {
@@ -643,6 +662,15 @@ void Click(int id)
     case kIdSave: Save(); break;
     case kIdBrowseIso: BrowseIso(); break;
     case kIdUpdCheck: if (g.upd.newer) StartUpdateInstall(); else StartUpdateCheck(false); break;
+    case kIdCopyCode:
+        if (!g.netCode.empty() && OpenClipboard(g.wnd))
+        {
+            EmptyClipboard();
+            if (HGLOBAL m = GlobalAlloc(GMEM_MOVEABLE, g.netCode.size() + 1)) { memcpy(GlobalLock(m), g.netCode.c_str(), g.netCode.size() + 1); GlobalUnlock(m); SetClipboardData(CF_TEXT, m); }
+            CloseClipboard();
+            g.status = L"Código copiado: pégaselo a tu amigo.";
+        }
+        break;
     case kIdBrowseDlc: BrowseFolder("dlc", L"Carpeta con los DLC (paquetes de Xbox 360)"); break;
     case kIdBrowseUpdate: BrowseFolder("actualizacion_dir", L"Carpeta con la actualización del título (TU)"); break;
     case kIdBrowseLatin: BrowseFolder("carpeta_latino", L"Carpeta del parche en español latino"); break;
@@ -744,9 +772,19 @@ LRESULT CALLBACK LauncherProc(HWND h, UINT m, WPARAM w, LPARAM l)
         if (g.editing >= 0)
         {
             const char* key = kTexts[g.editing].key; std::string v = IniValue(key, kTexts[g.editing].fallback);
+            size_t maxLen = g.editing == kTextAddress ? 200 : 64;
             if (w == 8) { if (!v.empty()) v.pop_back(); }
             else if (w == 13 || w == 27) g.editing = -1;
-            else if (w >= 32 && w < 127 && v.size() < 64) v += char(w);
+            else if (w == 22 && OpenClipboard(h))   // Ctrl+V
+            {
+                if (HANDLE c = GetClipboardData(CF_UNICODETEXT)) if (const wchar_t* p = (const wchar_t*)GlobalLock(c))
+                {
+                    for (; *p && v.size() < maxLen; p++) if (*p >= 32 && *p < 127) v += char(*p); else if (*p == '\n' && !v.empty() && v.back() != ',') v += ',';
+                    GlobalUnlock(c);
+                }
+                CloseClipboard();
+            }
+            else if (w >= 32 && w < 127 && v.size() < maxLen) v += char(w);
             SetIni(key, v); InvalidateRect(h, nullptr, FALSE);
             return 0;
         }
@@ -756,7 +794,7 @@ LRESULT CALLBACK LauncherProc(HWND h, UINT m, WPARAM w, LPARAM l)
         if (w == VK_RETURN) { Click(kIdPlay); if (g.done) DestroyWindow(h); else InvalidateRect(h, nullptr, FALSE); return 0; }
         break;
     case WM_TIMER:
-        if (g.editing >= 0) { static ULONGLONG last = 0; if (GetTickCount64() - last >= 500) { last = GetTickCount64(); InvalidateRect(h, nullptr, FALSE); } }
+        if (g.editing >= 0 || (g.page == kOnline && !g.netReady)) { static ULONGLONG last = 0; if (GetTickCount64() - last >= 500) { last = GetTickCount64(); InvalidateRect(h, nullptr, FALSE); } }
         return 0;
     case WM_CLOSE:
         if (g.dirty && MessageBoxW(h, L"Hay cambios sin guardar. ¿Guardarlos antes de salir?", L"Gears of War 3", MB_YESNO | MB_ICONQUESTION) == IDYES) Save();
@@ -817,6 +855,7 @@ bool RunLauncherUI()
     ShowWindow(g.wnd, SW_SHOW);
     if (ToggleValue(kTogUpdAuto)) StartUpdateCheck(true);   // en segundo plano; solo avisa si hay version nueva
     SetTimer(g.wnd, 1, 30, nullptr);
+    { std::string o = IniValue("online", "no"); if (o == "crear" || o == "unirse") SetIni("online", "1"); }   // online antiguo (anfitrion/invitado)
     MSG msg;
     while (!g.done && GetMessageW(&msg, nullptr, 0, 0) > 0) { TranslateMessage(&msg); DispatchMessageW(&msg); }
     if (IsWindow(g.wnd)) DestroyWindow(g.wnd);

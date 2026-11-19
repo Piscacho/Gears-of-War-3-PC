@@ -174,7 +174,7 @@ void GpuStartWindow()
         RECT wa{}; SystemParametersInfoW(SPI_GETWORKAREA, 0, &wa, 0);
         RECT r{ 0, 0, cw, ch }; AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
         int ww = std::min<int>(r.right - r.left, wa.right - wa.left), wh = std::min<int>(r.bottom - r.top, wa.bottom - wa.top);
-        g_hwnd = CreateWindowW(L"NG2Recomp", L"Gears of War 3 (recompilado)", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        g_hwnd = CreateWindowW(L"NG2Recomp", L"Gears of War 3", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                                wa.left + (wa.right - wa.left - ww) / 2, wa.top + (wa.bottom - wa.top - wh) / 2, ww, wh, nullptr, nullptr, wc.hInstance, nullptr);
         if (getenv("GOW3_FULLSCREEN") && atoi(getenv("GOW3_FULLSCREEN")) != 0) PostMessageW(g_hwnd, WM_KEYDOWN, VK_F11, 0);
         {   // GoW3 sesion 5: raton en bruto (deltas sin aceleracion de Windows)
@@ -379,9 +379,13 @@ title:
         lastTitle = now;
         auto& s = GpuGetStats();
         char t[256];
-        snprintf(t, sizeof(t), "Gears of War 3 (recompilado) - %s - frames %llu - draws %llu", g_d3d12Active ? "D3D12" : "GDI",
-                 (unsigned long long)s.swaps.load(), (unsigned long long)s.draws.load());
-        SetWindowTextA(g_hwnd, t);
+        static const bool debugTitle = getenv("GOW3_DEBUGTITLE") != nullptr;   // GoW3 sesion 5: titulo limpio salvo para depurar
+        if (debugTitle)
+        {
+            snprintf(t, sizeof(t), "Gears of War 3 (recompilado) - %s - frames %llu - draws %llu", g_d3d12Active ? "D3D12" : "GDI",
+                     (unsigned long long)s.swaps.load(), (unsigned long long)s.draws.load());
+            SetWindowTextA(g_hwnd, t);
+        }
         if (!g_d3d12Active) InvalidateRect(g_hwnd, nullptr, FALSE);
     }
 }

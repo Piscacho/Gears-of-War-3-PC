@@ -14,7 +14,7 @@ Como jugar
 Estado
 - Funcionan: menus, campana, Horda (partida privada) y Beast.
 - Rendimiento: tope de FPS configurable (30 / 60 / 120 / 144 / 165 / 240 / sin limite).
-- Horda online por enlace de sistema (System Link), LAN o VPN (Radmin VPN / ZeroTier): ver "Jugar online" abajo.
+- Horda online por enlace de sistema (System Link): en red local o por internet con un codigo de amigo; ver "Jugar online".
 - Panoramico 21:9 / 32:9 y resolucion interna mayor: en desarrollo.
 
 Horda con un perfil nuevo
@@ -38,10 +38,12 @@ Raton y teclado
   1-4 o flechas = cruceta (armas), rueda = cambiar arma, Intro = START, Retroceso = atras.
 
 Jugar online (Horda con amigos)
-- En el launcher, Modo: el anfitrion elige "Crear partida" y los demas "Unirse" (online_direccion= en gow3.ini = IP del
-  anfitrion si no estais en la misma red; con VPN, la IP de la VPN).
-- En el juego, todos: en el menu principal pulsar BACK (Retroceso) -> System Link.
-- Anfitrion: Y (crear grupo). Invitados: X (refrescar) y A (unirse) en el buscador.
-- Anfitrion: Horde -> PRIVATE -> A hasta el lobby -> START para elegir mapa. (STANDARD pide Xbox LIVE Gold y no sirve.)
+- En el launcher, pagina EN LINEA: "Jugar en linea" = Activado (todos). No hay que elegir anfitrion ni escribir IPs.
+- Misma red de casa, o LAN virtual (Radmin VPN / ZeroTier): os encontrais solos.
+- Por internet: copia "Tu codigo" (boton COPIAR) y pasaselo a tu amigo; el lo pega en "Codigos de amigos". Si el launcher
+  dice CGNAT o "Router sin UPnP", poned los dos el codigo del otro (o usad Radmin VPN).
+- Todos con la misma version del port (el launcher avisa de las nuevas en INICIO).
+- En el juego: menu principal -> BACK (Tab) -> System Link. Uno crea el grupo con Y; los demas pulsan X (buscar) y A (unirse).
+- El que creo el grupo: Horde -> PRIVATE -> A hasta el lobby -> START para elegir mapa. (STANDARD pide Xbox LIVE Gold.)
 
 Registro de la ultima partida: gow3.log junto al ejecutable.

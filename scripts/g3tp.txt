@@ -1,0 +1,18 @@
+ANCHOR @UIScene_FrontEndContent.Callback_OnTitleScreen
+2 START 200
+ANCHOR @UIScene_FrontEndContent.OnReadSaveGameDataComplete
+4 A 200
+15 DOWN 120
+17 DOWN 120
+20 A 200
+25 DOWN 120
+27 A 200
+35 A 200
+41 A 200
+47 A 200
+53 A 200
+ANCHOR @GearPreGameGRI.PostBeginPlay
+10 START 200
+18 START 200
+ANCHOR @GearHordePC.StartupStopLoadingMovie
+150 DUMP

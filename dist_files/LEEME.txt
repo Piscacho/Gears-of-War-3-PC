@@ -1,0 +1,46 @@
+GEARS OF WAR 3 - PORT PC (recompilacion estatica del juego de Xbox 360)
+=======================================================================
+
+Que necesitas
+- Tu propio disco de Gears of War 3 para Xbox 360 en formato ISO (version World, titulo 4D5308AB).
+  Este paquete NO incluye ningun archivo del juego.
+- Windows 10/11 de 64 bits y una tarjeta grafica con DirectX 12.
+
+Como jugar
+1. Abre GOW3.exe. Aparece el launcher.
+2. En la pagina JUEGO elige el ISO.
+3. Pulsa JUGAR.
+
+Estado
+- Funcionan: menus, campana, Horda (partida privada) y Beast.
+- Rendimiento: tope de FPS configurable (30 / 60 / 120 / 144 / 165 / 240 / sin limite).
+- Horda online por enlace de sistema (System Link), LAN o VPN (Radmin VPN / ZeroTier): ver "Jugar online" abajo.
+- Panoramico 21:9 / 32:9 y resolucion interna mayor: en desarrollo.
+
+Horda con un perfil nuevo
+- La oleada 1 no empieza hasta que construyes el puesto de mando (boton X junto a su marcador).
+  Si quieres saltarlo, activa "Saltar el tutorial de la Horda" en la pagina JUEGO del launcher.
+
+Teclas en el juego
+- F11 o Alt+Intro: pantalla completa. F3: contador de FPS. F12: captura.
+- Mantener Mayus al abrir GOW3.exe vuelve a mostrar el launcher si lo ocultaste.
+
+Espanol latino
+- El ISO World no trae espanol. Si tienes otro disco del juego en espanol latino (carpeta con GearGame\), ponlo en una
+  carpeta llamada "juego en latino" (o "latino") junto a GOW3.exe o junto al ISO, o indica su ruta con carpeta_latino=
+  en gow3.ini. Luego elige Idioma: "Espanol latino" en el launcher. Se usan solo sus textos, voces y videos narrados;
+  el ejecutable sigue siendo el del ISO.
+
+Raton y teclado
+- Raton: camara (sensibilidad en el launcher). Clic izquierdo dispara, derecho apunta. F10 libera/captura el raton.
+- WASD mover, Espacio/Mayus = A (cubrirse/correr), E = X (usar/recoger), Q = Y, Tab = LB, R = RB (recargar),
+  1-4 o flechas = cruceta (armas), rueda = cambiar arma, Intro = pausa, Esc = B.
+
+Jugar online (Horda con amigos)
+- En el launcher, Modo: el anfitrion elige "Crear partida" y los demas "Unirse" (online_direccion= en gow3.ini = IP del
+  anfitrion si no estais en la misma red; con VPN, la IP de la VPN).
+- En el juego, todos: en el menu principal pulsar BACK (Retroceso) -> System Link.
+- Anfitrion: Y (crear grupo). Invitados: X (refrescar) y A (unirse) en el buscador.
+- Anfitrion: Horde -> PRIVATE -> A hasta el lobby -> START para elegir mapa. (STANDARD pide Xbox LIVE Gold y no sirve.)
+
+Registro de la ultima partida: gow3.log junto al ejecutable.

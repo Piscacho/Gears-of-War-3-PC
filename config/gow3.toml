@@ -1,0 +1,45 @@
+# XenonRecomp - Gears of War 3 (X360, 4D5308AB, disco v0xB) - BORRADOR de la sesion 1
+[main]
+file_path = "../xex/default.xex"
+out_directory_path = "../ppc"
+switch_table_file_path = "gow3_switch_tables_all.toml"
+# Optimizaciones desactivadas hasta tener una recompilacion que funcione
+skip_lr = false
+skip_msr = false
+ctr_as_local = false
+xer_as_local = false
+reserved_as_local = false
+cr_as_local = false
+non_argument_as_local = false
+non_volatile_as_local = false
+restgprlr_14_address = 0x82CC9910
+savegprlr_14_address = 0x82CC98C0
+restfpr_14_address   = 0x82CCA1CC
+savefpr_14_address   = 0x82CCA180
+restvmx_14_address   = 0x82CCA518
+savevmx_14_address   = 0x82CCA280
+restvmx_64_address   = 0x82CCA5AC
+savevmx_64_address   = 0x82CCA314
+longjmp_address = 0x82CCC3F0
+setjmp_address  = 0x82CCC710
+# Funciones sin .pdata (sin comentarios dentro del array: XenonRecomp se cae). Sesion 2: completar con make_functions/gap_functions.
+functions = [
+{ address = 0x823AC230, size = 0xFC },
+{ address = 0x824167F8, size = 0x160 },
+{ address = 0x826F2030, size = 0x140 },
+{ address = 0x829619F0, size = 0xE0 },
+{ address = 0x8297CCF0, size = 0x25C },
+{ address = 0x829C7B28, size = 0x180 },
+{ address = 0x82CC81D0, size = 0xC },
+{ address = 0x82CC9EA0, size = 0xA0 },
+{ address = 0x82CCC090, size = 0xC },
+{ address = 0x82CCC710, size = 0x2CC },
+{ address = 0x82D2D300, size = 0x270 },
+{ address = 0x82D67E40, size = 0x260 },
+{ address = 0x82D680A0, size = 0x20 },
+{ address = 0x82D680C0, size = 0x30 },
+{ address = 0x82D680F0, size = 0x28 },
+{ address = 0x82D68118, size = 0x24 },
+{ address = 0x82D68140, size = 0x1C },
+{ address = 0x82E0F418, size = 0x110 }
+]

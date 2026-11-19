@@ -1,0 +1,20 @@
+ANCHOR @UIScene_FrontEndContent.Callback_OnTitleScreen
+2 START 200
+ANCHOR @UIScene_FrontEndContent.OnReadSaveGameDataComplete
+4 A 200
+8 BACK 200
+10 UP 150
+12 A 200
+45 X 200
+49 A 200
+55 X 200
+59 A 200
+65 B 200
+70 B 200
+75 DUMP
+ANCHOR @GearPreGameGRI.PostBeginPlay
+30 DUMP
+60 DUMP
+90 DUMP
+120 DUMP
+150 DUMP

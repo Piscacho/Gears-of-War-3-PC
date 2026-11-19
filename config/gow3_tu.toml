@@ -1,0 +1,45 @@
+# XenonRecomp - Gears of War 3 TU v0x60B (generado por tools/make_tu_toml.py; no editar a mano) - BORRADOR de la sesion 1
+[main]
+file_path = "../tu/tu_default.xex"
+out_directory_path = "../ppc_tu"
+switch_table_file_path = "gow3_tu_switch_tables_fixed.toml"
+# Optimizaciones desactivadas hasta tener una recompilacion que funcione
+skip_lr = false
+skip_msr = false
+ctr_as_local = false
+xer_as_local = false
+reserved_as_local = false
+cr_as_local = false
+non_argument_as_local = false
+non_volatile_as_local = false
+restgprlr_14_address = 0x82CDD080
+savegprlr_14_address = 0x82CDD030
+restfpr_14_address   = 0x82CDD93C
+savefpr_14_address   = 0x82CDD8F0
+restvmx_14_address   = 0x82CDDC88
+savevmx_14_address   = 0x82CDD9F0
+restvmx_64_address   = 0x82CDDD1C
+savevmx_64_address   = 0x82CDDA84
+longjmp_address = 0x82CDFB60
+setjmp_address  = 0x82CDFE80
+# Funciones sin .pdata (sin comentarios dentro del array: XenonRecomp se cae). Sesion 2: completar con make_functions/gap_functions.
+functions = [
+{ address = 0x823BD068, size = 0xFC },
+{ address = 0x82426FB8, size = 0x160 },
+{ address = 0x82703358, size = 0x140 },
+{ address = 0x829729D8, size = 0xE0 },
+{ address = 0x8298E178, size = 0x25C },
+{ address = 0x829D9698, size = 0x180 },
+{ address = 0x82CDB940, size = 0xC },
+{ address = 0x82CDD610, size = 0xA0 },
+{ address = 0x82CDF800, size = 0xC },
+{ address = 0x82CDFE80, size = 0x2CC },
+{ address = 0x82D40B18, size = 0x270 },
+{ address = 0x82D7B228, size = 0x260 },
+{ address = 0x82D7B488, size = 0x20 },
+{ address = 0x82D7B4A8, size = 0x30 },
+{ address = 0x82D7B4D8, size = 0x28 },
+{ address = 0x82D7B500, size = 0x24 },
+{ address = 0x82D7B528, size = 0x1C },
+{ address = 0x82E224B0, size = 0x110 }
+]

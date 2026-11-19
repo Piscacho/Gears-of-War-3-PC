@@ -1,0 +1,15 @@
+ANCHOR @UIScene_FrontEndContent.Callback_OnTitleScreen
+2 START 200
+ANCHOR @UIScene_FrontEndContent.OnReadSaveGameDataComplete
+4 A 200
+8 BACK 200
+10 UP 150
+12 A 200
+16 DUMP
+20 DUMP
+22 DOWN 150
+24 DOWN 150
+26 A 200
+29 DUMP
+31 DOWN 150
+33 DUMP

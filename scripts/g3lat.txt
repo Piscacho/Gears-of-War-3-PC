@@ -1,0 +1,8 @@
+30 START 200
+ANCHOR PlayerStorage.dat
+8 A 200
+ANCHOR PlayerStorage.dat
+8 A 200
+12 DUMP
+13 A 200
+18 DUMP

@@ -3,6 +3,8 @@
 #pragma once
 #ifdef GOW3_TU
 #define sub_82319958 sub_8232A3B0
+#define sub_822BCEC8 sub_822CCD10
+#define __imp__sub_822BCEC8 __imp__sub_822CCD10
 #define __imp__sub_82319958 __imp__sub_8232A3B0
 #define sub_822DFBC8 sub_822EFF28
 #define __imp__sub_822DFBC8 __imp__sub_822EFF28

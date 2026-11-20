@@ -118,7 +118,7 @@ const Toggle kToggles[] = {
     { "vibracion", L"Vibración del mando", L"El mando vibra con los disparos y golpes.", true },
     { "saltar_intro", L"Saltar los vídeos de inicio", L"Entra directo a la pantalla de título.", false },
     { "perfil", L"Guardar partidas", L"Con perfil se guardan la campaña y los ajustes.", true },
-    { "actualizacion", L"Usar la actualización del título", L"Experimental: ahora se cuelga al entrar al menú principal.", false },
+    { "actualizacion", L"Usar la actualización del título", L"Con DLC, la 1.ª vez el menú tarda ~1 min, vuelve al título y hay que pulsar START otra vez.", false },
     { "mostrar_launcher", L"Mostrar este launcher al abrir", L"Si se desactiva, mantén Mayús al abrir para verlo.", true },
     { "horda_sin_tutorial", L"Saltar el tutorial de la Horda", L"Con un perfil nuevo la oleada 1 espera a que construyas el puesto de mando.", false },
     { "actualizar_al_abrir", L"Buscar actualizaciones al abrir", L"Avisa si hay una versión nueva del port en GitHub.", true },
@@ -438,12 +438,14 @@ void PaintHome(HDC dc, RECT area)
     Text(dc, L"MANDO DE XBOX O DUALSENSE: como en la consola   ·   TECLADO: WASD mover, IJKL cámara", c1, kText, g.smallFont, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
     RECT c2{ card.left + S(16), card.top + S(28), card.right - S(16), card.top + S(52) };
     Text(dc, L"Controles como Gears of War: Reloaded   ·   ESPACIO: cubrirse/correr   ·   R: recargar   ·   F: cuerpo a cuerpo   ·   ESC: pausa   ·   F11: pantalla completa", c2, kMuted, g.smallFont, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
-    y = Section(dc, x, card.bottom + S(14), w, L"ACTUALIZACIONES");
-    std::wstring info = !g.updText.empty() ? g.updText : L"Versión instalada: v" + Wide(AppVersion());
-    RECT it{ x, y, x + w - S(290), y + S(36) }; Text(dc, info, it, kText, g.smallFont, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
-    Button(dc, RECT{ x + w - S(280), y, x + w, y + S(36) }, g.upd.newer && !g.updBusy ? (L"INSTALAR " + Wide(g.upd.tag)).c_str() : L"BUSCAR ACTUALIZACIONES", kIdUpdCheck);
-    y += S(48);
-    ToggleRow(dc, x, y, w, kTogUpdAuto);
+    if (g.upd.newer || g.updBusy)   // aviso de version nueva (las opciones estan en AVANZADO, como en el launcher de GH)
+    {
+        RECT nb{ x, card.bottom + S(12), area.right, card.bottom + S(60) }; Chamfer(dc, nb, S(10), kPanelHi, kRed);
+        RECT nt{ nb.left + S(16), nb.top, nb.right - S(260), nb.bottom };
+        std::wstring info = !g.updText.empty() ? g.updText : L"Nueva versión " + Wide(g.upd.tag) + L" disponible.";
+        Text(dc, info, nt, kText, g.smallFont, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+        if (g.upd.newer && !g.updBusy) Button(dc, RECT{ nb.right - S(244), nb.top + S(6), nb.right - S(8), nb.bottom - S(6) }, (L"INSTALAR " + Wide(g.upd.tag)).c_str(), kIdUpdCheck);
+    }
 }
 void PaintGraphics(HDC dc, RECT area)
 {
@@ -535,6 +537,7 @@ void PaintOnline(HDC dc, RECT area)
         L"ZeroTier) os encontráis solos; por internet, uno pega el código del otro en «Códigos de amigos».";
     Text(dc, help.c_str(), t, kMuted, g.smallFont, DT_LEFT | DT_TOP | DT_WORDBREAK);
 }
+std::string Repo();
 void PaintAdvanced(HDC dc, RECT area)
 {
     int x = area.left, w = area.right - area.left, y = area.top;
@@ -544,13 +547,19 @@ void PaintAdvanced(HDC dc, RECT area)
     PathRowCompact(dc, x, y, w, L"Carpeta de la actualización", IniValue("actualizacion_dir", ""), kIdBrowseUpdate);
     PathRowCompact(dc, x, y, w, L"Carpeta del parche latino", IniValue("carpeta_latino", ""), kIdBrowseLatin);
     y += S(6);
-    ToggleRow(dc, x, y, w, kTogSkipIntro);
-    ToggleRow(dc, x, y, w, kTogProfile);
-    ToggleRow(dc, x, y, w, kTogTu);
-    ToggleRow(dc, x, y, w, kTogHordeTut);
-    ToggleRow(dc, x, y, w, kTogLauncher);
-    y = Section(dc, x, y + S(4), w, L"CARPETAS");
-    Button(dc, RECT{ x, y, x + S(220), y + S(36) }, L"PARTIDAS GUARDADAS", kIdOpenSaves);
+    // pagina compacta: las filas de interruptores van mas juntas para que quepan las actualizaciones (como en GH)
+    for (int t : { kTogSkipIntro, kTogProfile, kTogTu, kTogHordeTut }) { ToggleRow(dc, x, y, w, t); y -= S(9); }
+    y = Section(dc, x, y + S(4), w, L"ACTUALIZACIONES Y LAUNCHER");
+    {
+        std::wstring info = !g.updText.empty() ? g.updText : L"Versión instalada: v" + Wide(AppVersion()) + L"  ·  repositorio " + Wide(Repo());
+        RECT it{ x, y, x + w - S(300), y + S(36) }; Text(dc, info, it, kMuted, g.smallFont, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
+        std::wstring lab = g.updBusy ? L"ESPERA..." : g.upd.newer ? L"INSTALAR " + Wide(g.upd.tag) : L"BUSCAR ACTUALIZACIONES";
+        Button(dc, RECT{ x + w - S(290), y, x + w, y + S(36) }, lab.c_str(), kIdUpdCheck);
+        y += S(46);
+    }
+    for (int t : { kTogUpdAuto, kTogLauncher }) { ToggleRow(dc, x, y, w, t); y -= S(9); }
+    y += S(6);
+    Button(dc, RECT{ x, y, x + S(220), y + S(36) }, L"CARPETA DE PARTIDAS", kIdOpenSaves);
     Button(dc, RECT{ x + S(236), y, x + S(456), y + S(36) }, L"CONTENIDO (DLC)", kIdOpenDlc);
     Button(dc, RECT{ x + S(472), y, x + S(692), y + S(36) }, L"REGISTRO (LOG)", kIdOpenLogs);
 }
@@ -661,7 +670,17 @@ void Click(int id)
         g.play = true; g.done = true; break;
     case kIdSave: Save(); break;
     case kIdBrowseIso: BrowseIso(); break;
-    case kIdUpdCheck: if (g.upd.newer) StartUpdateInstall(); else StartUpdateCheck(false); break;
+    case kIdUpdCheck:
+        if (g.updBusy) break;
+        if (!g.upd.newer) { StartUpdateCheck(false); break; }
+        {   // como en el launcher de GH: confirmar mostrando las novedades de la release
+            std::wstring q = L"¿Descargar e instalar " + Wide(g.upd.tag) + L"?\n\nSe conservan gow3.ini, las partidas y los DLC.";
+            std::string n = g.upd.notes; std::string clean;
+            for (size_t i = 0; i < n.size(); i++) { if (n[i] == '*' || n[i] == '`' || (n[i] == '>' && (i == 0 || n[i - 1] == '\n')) || n[i] == '#') continue; clean += n[i]; }
+            if (!clean.empty()) q += L"\n\nNovedades:\n" + Wide(clean.substr(0, 700)) + (clean.size() > 700 ? L"..." : L"");
+            if (getenv("GOW3_UPDATE_AUTOYES") || MessageBoxW(g.wnd, q.c_str(), L"Actualización", MB_YESNO | MB_ICONQUESTION) == IDYES) StartUpdateInstall();
+        }
+        break;
     case kIdCopyCode:
         if (!g.netCode.empty() && OpenClipboard(g.wnd))
         {
@@ -717,7 +736,7 @@ void OnUpdateChecked(UpdateInfo* u)
     if (!g.upd.ok) { if (!g.updAuto) g.updText = L"No se pudo comprobar: " + Wide(g.upd.error); return; }
     if (!g.upd.newer) { if (!g.updAuto) g.updText = L"Tienes la última versión (v" + cur + L")."; return; }
     g.updText = L"Nueva versión " + Wide(g.upd.tag) + L" disponible (tienes v" + cur + L").";
-    g.status = L"Hay una versión nueva: " + Wide(g.upd.tag) + L" (página INICIO).";
+    g.status = L"Hay una versión nueva: " + Wide(g.upd.tag) + L" (INICIO o AVANZADO).";
     if (UpdAutoYes()) { _putenv_s("GOW3_UPDATE_AUTOYES", ""); StartUpdateInstall(); }   // el launcher reabierto no la hereda
 }
 void OnUpdateInstalled(bool ok, std::string* err)

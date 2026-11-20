@@ -514,20 +514,21 @@ PPC_FUNC(sub_82B1C600)   // crear (y limpiar) los contextos de una voz
     static int nl = 0; if (n > 1 && nl++ < 5) LOG("[xma] voz con %u contextos (antes se perdian kicks/clears del mismo grupo)", n);
 }
 
-#ifndef GOW3_TU   // shortcut: solo la version base (la TU esta apagada por defecto); para la TU hay que mapear las direcciones
 // GoW3 sesion 5: carga de los DLC al pulsar START (UGameEngine::LoadPackagesFully, sub_8253F388, desde
 // Engine.PackagesToFullyLoadForDLC). Por cada paquete cargado recorre TODOS los objetos (FObjectIterator, sub_822BCEC8) y sube
 // por Outer (+40) para ver si estan en el paquete: con 31 DLC era ~la mitad de un minuto de carga. Aqui, solo cuando el ++
 // viene de ese bucle (lr 0x8253F744 / 0x8253F7EC; el paquete esta en r26), se salta en nativo hasta el siguiente objeto que SI
 // esta en el paquete: el bucle del juego ve la misma secuencia de coincidencias. GOW3_NODLCFAST = como antes.
+// TU: LoadPackagesFully = 8254FE70, ++ = 822CCD10 (tu_remap.h), lr 0x8255022C / 0x825502D4, GObjObjects 0x8344D958.
 PPC_FUNC_IMPL(__imp__sub_822BCEC8);
 PPC_FUNC(sub_822BCEC8)
 {
     static const bool off = getenv("GOW3_NODLCFAST") != nullptr;
     uint32_t lr = (uint32_t)ctx.lr;
-    if (off || (lr != 0x8253F744u && lr != 0x8253F7ECu)) { __imp__sub_822BCEC8(ctx, base); return; }
+    if (off || (lr != GOW3ADDR(0x8253F744u, 0x8255022Cu) && lr != GOW3ADDR(0x8253F7ECu, 0x825502D4u))) { __imp__sub_822BCEC8(ctx, base); return; }
     const uint32_t it = ctx.r3.u32, pkg = ctx.r26.u32;
-    const uint32_t data = Load32(0x8343D188u), num = Load32(0x8343D18Cu);   // GObjObjects
+    const uint32_t objs = GOW3ADDR(0x8343D188u, 0x8344D958u);   // GObjObjects
+    const uint32_t data = Load32(objs), num = Load32(objs + 4);
     const uint64_t excl = Load64(it + 8);
     // cache por hueco: (objeto, Outer directo) -> paquete raiz de su cadena de Outer (se recalcula si cambia el objeto o su Outer)
     struct Top { uint32_t obj, outer, top; };
@@ -569,4 +570,3 @@ PPC_FUNC(sub_822BCEC8)
     }
     Store32(it + 4, (uint32_t)idx);
 }
-#endif

@@ -179,3 +179,28 @@
   la cadena entera (1150 M comprobaciones, 0 diferencias). Solo version base (#ifndef GOW3_TU).
 - Resultado: menu a los 47 s del arranque (antes 64); fase de DLC 35 s -> 19 s. Lo que queda es la carga real de paquetes
   (FLinkerLoad 822E9188/822EA320/822E9608).
+
+## v1.0.2 publicada (2026-11-19)
+- Titulo de la ventana del juego: "Gears of War 3" (GOW3_DEBUGTITLE=1 = el de depuracion con frames/draws).
+- Release v1.0.2 en GitHub (online nuevo, carga de DLC, titulo); commit 5c5c932 en el repo. La v1.0.1 sigue publicada
+  (no se pidio borrarla). Pendiente: prueba con 3+ jugadores, oleada completa, aviso CGNAT mas claro ("pega tu el codigo de tu
+  amigo"), sobreexposicion al empezar la Horda, TU congelada al entrar al menu.
+
+## v1.0.3 (2026-11-19, sin publicar): TU, boton de actualizar como GH, destello de la Horda
+- **TU "congelada al entrar al menu": no lo esta.** Con la TU importada (userdata del usuario) y DLC: tras aceptar la
+  calibracion el menu sale vacio (fondo + ACEPTAR/VOLVER/OPCIONES) ~50 s con el hilo principal casi parado; luego aparece
+  "DESCARGANDO CONTENIDO · Actualizando menus con el contenido descargado", vuelve al titulo y con START entra normal (probado:
+  menu y Opciones en espanol). Ojo: el cuelgue de verdad de las pruebas de desarrollo era del entorno (run\userdata sin la TU
+  importada -> sin ScriptPatch_GearGame -> GearDownloadableContentManager con la forma antigua de la clase -> la TU lee
+  Num=1151242816 en +172 y recorre "para siempre" su lista nueva de .ini en sub_82AE9B90). Para probar la TU: RUN_DATA= la
+  carpeta de datos con la TU importada.
+- Atajo de los DLC tambien en la TU (tu_remap: 822BCEC8 -> 822CCD10; lr 0x8255022C/0x825502D4; GObjObjects 0x8344D958).
+- Pendiente TU: la espera de ~52 s tras la calibracion (sin temporizadores de script; ninguna llamada al sistema en el hueco;
+  aparecen ordinales 2493/2494 sin implementar, tambien en la base). La TU sigue apagada por defecto (texto del launcher corregido).
+- Launcher: actualizaciones como en GH: AVANZADO -> "ACTUALIZACIONES Y LAUNCHER" (version + repositorio, BUSCAR/INSTALAR,
+  buscar al abrir, mostrar launcher); al instalar, dialogo con las novedades de la release; INICIO solo muestra un aviso con
+  INSTALAR si hay version nueva. AVANZADO compactado (filas -9).
+- Destello al empezar la Horda: no existe ya; la partida empieza con un fundido desde negro (seq_000..007: 0 -> 37) y el
+  brillo se mantiene (~58). La nota antigua era de la configuracion x32.
+- Carga: lo que queda (~19 s con 31 DLC) es FLinkerLoad (822E9188/822EA320/822E9608); IsTimeLimitExceeded (822E9570) se
+  llama muchisimo. No se toco.

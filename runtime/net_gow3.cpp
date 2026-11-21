@@ -502,9 +502,9 @@ bool NetLauncherInfo(std::string& code, std::wstring& status)
     if (g_inet.pubIp) code = CodeEncode(g_inet.pubIp, g_inet.pubPort);
     wchar_t t[400];
     if (!g_inet.pubIp) swprintf(t, 400, L"Sin internet detectado: solo red local (o LAN virtual). Puerto UDP %u.", g_muxPort);
-    else if (g_inet.cgnat) swprintf(t, 400, L"Tu proveedor usa CGNAT: puede que no te puedan conectar. Si falla, poned los dos el código del otro o usad Radmin VPN / ZeroTier.");
+    else if (g_inet.cgnat) swprintf(t, 400, L"Tienes CGNAT (tu proveedor no te da IP propia): tu código no sirve para que te encuentren. Pide a tu amigo SU código y pégalo tú en «Códigos de amigos». Si él también tiene CGNAT, usad Radmin VPN.");
     else if (g_inet.upnp) swprintf(t, 400, L"Router: puerto UDP %u abierto automáticamente (UPnP). Basta con que tu amigo ponga tu código.", g_muxPort);
-    else swprintf(t, 400, L"Router sin UPnP: poned los dos el código del otro (o abre el puerto UDP %u en el router).", g_muxPort);
+    else swprintf(t, 400, L"Router sin UPnP: pega tú el código de tu amigo; si él tampoco tiene UPnP, poned los dos el del otro (o abre el puerto UDP %u).", g_muxPort);
     status = t;
     return true;
 }

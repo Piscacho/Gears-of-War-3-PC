@@ -15,7 +15,7 @@
 
 namespace fs = std::filesystem;
 
-const char* AppVersion() { return "1.0.3"; }   // GoW3: version del port (subirla en cada release)
+const char* AppVersion() { return "1.0.4"; }   // GoW3: version del port (subirla en cada release)
 
 namespace
 {

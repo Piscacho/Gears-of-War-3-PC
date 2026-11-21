@@ -37,6 +37,8 @@ static uint64_t UserXuid()
         uint64_t h = 1469598103934665603ull;
         for (char c : UserName()) h = (h ^ (uint8_t)c) * 1099511628211ull;
         if (const char* ip = getenv("GOW3_NET_IP")) for (const char* c = ip; *c; c++) h = (h ^ (uint8_t)*c) * 1099511628211ull;
+        // GoW3 sesion 5: + nombre del PC (estable por equipo): dos amigos con el mismo nombre ("Jugador") no comparten XUID
+        char pc[64] = {}; DWORD n = sizeof(pc); if (GetComputerNameA(pc, &n)) for (const char* c = pc; *c; c++) h = (h ^ (uint8_t)*c) * 1099511628211ull;
         return 0x0009000000000000ull | (h & 0x0000FFFFFFFFFFFFull);   // XUID "online" (0009...)
     }();
     return x;

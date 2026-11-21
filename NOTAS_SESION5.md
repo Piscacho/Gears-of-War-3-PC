@@ -204,3 +204,18 @@
   brillo se mantiene (~58). La nota antigua era de la configuracion x32.
 - Carga: lo que queda (~19 s con 31 DLC) es FLinkerLoad (822E9188/822EA320/822E9608); IsTimeLimitExceeded (822E9570) se
   llama muchisimo. No se toco.
+
+- v1.0.3 publicada en GitHub (commit 7b1fbd7). v1.0.2 sigue publicada.
+
+## v1.0.4 (2026-11-20, sin publicar): 3 jugadores, oleada, CGNAT, XUID
+- **3 jugadores** (tools/run_trio.py: run, run2, run3 con su userdata; A crea el grupo con net_host.txt, B y C net_join.txt):
+  los tres se encuentran solos, grupo System Link "Anfitrion, Invitado2, Invitado1" y los tres en la misma Horda (Checkout).
+- **XUID en linea** = hash(nombre + GOW3_NET_IP + nombre del PC): antes solo el nombre -> dos amigos con "Jugador" tenian el
+  mismo XUID. (XamContentGetCreator devuelve siempre el XUID actual, asi que las partidas siguen siendo del usuario.)
+- **Oleada**: con GOW3_HORDESKIPBUILD=1: Preparar oleada 1 (0:29 -> 0:09) -> enemigos (GearPawn_LocustDrone disparando) ->
+  disparos del jugador (municion 300 -> 196, impactos) -> "WAVE 1 FAILED!" con puntuacion y Reiniciar/Menu. Ganarla requiere
+  jugar. Puesto de mando: X junto a la base abre UIScene_HordeBuilderContent (menu de construccion); llegar a la bandera
+  andando a ciegas no es fiable (mostradores en medio).
+- Aviso del launcher con CGNAT: "pide a tu amigo SU codigo y pegalo tu"; sin UPnP: "pega tu el de tu amigo; si el tampoco
+  tiene UPnP, los dos".
+- Lanzar una prueba justo al terminar otra larga a veces da log vacio (0 lineas): esperar unos segundos y repetir.
